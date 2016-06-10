@@ -33,7 +33,7 @@ void disconnectCallback(const redisAsyncContext *c, int status) {
 }
 
 int main (int argc, char **argv) {
-    signal(SIGPIPE, SIG_IGN);
+    //signal(SIGPIPE, SIG_IGN);
     uv_loop_t* loop = uv_default_loop();
 
     redisAsyncContext *c = redisAsyncConnect("127.0.0.1", 6379);
@@ -46,8 +46,11 @@ int main (int argc, char **argv) {
     redisLibuvAttach(c,loop);
     redisAsyncSetConnectCallback(c,connectCallback);
     redisAsyncSetDisconnectCallback(c,disconnectCallback);
-    redisAsyncCommand(c, NULL, NULL, "SET key %b", argv[argc-1], strlen(argv[argc-1]));
-    redisAsyncCommand(c, getCallback, (char*)"end-1", "GET key");
+    //redisAsyncCommand(c, NULL, NULL, "SET key %b", argv[argc-1], strlen(argv[argc-1]));
+    //redisAsyncCommand(c, getCallback, (char*)"end-1", "GET key");
+	redisAsyncCommand(c, NULL, NULL, "HINCRBY key field %d", 5);
+	redisAsyncCommand(c, NULL, NULL, "HINCRBY key field %d", 5);
+	redisAsyncCommand(c, getCallback, (char*)"end", "HGET key field");
     uv_run(loop, UV_RUN_DEFAULT);
     return 0;
 }

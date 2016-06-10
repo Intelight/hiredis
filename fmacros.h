@@ -18,4 +18,12 @@
 #define _OSX
 #endif
 
+#ifdef WIN32
+#define snprintf _snprintf
+#define vsnprintf _vsnprintf
+#define strcasecmp _stricmp
+#define strncasecmp _strnicmp
+#define strerror_r(errno,buf,len) strerror_s(buf,len,errno)
+#endif
+
 #endif
