@@ -32,8 +32,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "fmacros.h"
-#include <sys/types.h>
+#ifdef WIN32
+#include <WinSock2.h>
+#include <ws2tcpip.h>
+#define poll(fdarray, nfds, timeout) WSAPoll(fdarray, nfds, timeout)
+#else
 #include <sys/socket.h>
 #include <sys/select.h>
 #include <sys/un.h>
@@ -41,13 +44,17 @@
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <netdb.h>
+#include <poll.h>
+#endif
+
+#include "fmacros.h"
+#include <sys/types.h>
 #include <fcntl.h>
 #include <string.h>
-#include <netdb.h>
 #include <errno.h>
 #include <stdarg.h>
 #include <stdio.h>
-#include <poll.h>
 #include <limits.h>
 #include <stdlib.h>
 
@@ -101,7 +108,7 @@ static int redisCreateSocket(redisContext *c, int type) {
 
 static int redisSetBlocking(redisContext *c, int blocking) {
     int flags;
-
+#ifdef __linux
     /* Set the socket nonblocking.
      * Note that fcntl(2) for F_GETFL and F_SETFL can't be
      * interrupted by a signal. */
@@ -121,6 +128,7 @@ static int redisSetBlocking(redisContext *c, int blocking) {
         redisContextCloseFd(c);
         return REDIS_ERR;
     }
+#endif
     return REDIS_OK;
 }
 
@@ -413,6 +421,9 @@ int redisContextConnectBindTcp(redisContext *c, const char *addr, int port,
 }
 
 int redisContextConnectUnix(redisContext *c, const char *path, const struct timeval *timeout) {
+#ifdef WIN32
+	return REDIS_ERR;
+#else
     int blocking = (c->flags & REDIS_BLOCK);
     struct sockaddr_un sa;
 
@@ -455,4 +466,5 @@ int redisContextConnectUnix(redisContext *c, const char *path, const struct time
 
     c->flags |= REDIS_CONNECTED;
     return REDIS_OK;
+#endif
 }

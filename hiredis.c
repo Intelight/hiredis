@@ -31,10 +31,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifdef WIN32
+#include <WinSock2.h>
+#else
+#include <unistd.h>
+#endif
 #include "fmacros.h"
 #include <string.h>
 #include <stdlib.h>
-#include <unistd.h>
+#include <time.h>
 #include <assert.h>
 #include <errno.h>
 #include <ctype.h>
@@ -402,7 +407,7 @@ int redisvFormatCommand(char **target, const char *format, va_list ap) {
 
     pos = sprintf(cmd,"*%d\r\n",argc);
     for (j = 0; j < argc; j++) {
-        pos += sprintf(cmd+pos,"$%zu\r\n",sdslen(curargv[j]));
+        pos += sprintf(cmd+pos,"$%Iu\r\n",sdslen(curargv[j]));
         memcpy(cmd+pos,curargv[j],sdslen(curargv[j]));
         pos += sdslen(curargv[j]);
         sdsfree(curargv[j]);
@@ -552,7 +557,7 @@ int redisFormatCommandArgv(char **target, int argc, const char **argv, const siz
     pos = sprintf(cmd,"*%d\r\n",argc);
     for (j = 0; j < argc; j++) {
         len = argvlen ? argvlen[j] : strlen(argv[j]);
-        pos += sprintf(cmd+pos,"$%zu\r\n",len);
+        pos += sprintf(cmd+pos,"$%Iu\r\n",len);
         memcpy(cmd+pos,argv[j],len);
         pos += len;
         cmd[pos++] = '\r';
@@ -616,8 +621,12 @@ static redisContext *redisContextInit(void) {
 void redisFree(redisContext *c) {
     if (c == NULL)
         return;
-    if (c->fd > 0)
-        close(c->fd);
+	if (c->fd > 0)
+#ifndef WIN32
+		close(c->fd);
+#else
+		closesocket(c->fd);
+#endif
     if (c->obuf != NULL)
         sdsfree(c->obuf);
     if (c->reader != NULL)
@@ -799,7 +808,7 @@ int redisBufferRead(redisContext *c) {
     if (c->err)
         return REDIS_ERR;
 
-    nread = read(c->fd,buf,sizeof(buf));
+    nread = recv(c->fd,buf,sizeof(buf), 0);
     if (nread == -1) {
         if ((errno == EAGAIN && !(c->flags & REDIS_BLOCK)) || (errno == EINTR)) {
             /* Try again later */
@@ -836,7 +845,7 @@ int redisBufferWrite(redisContext *c, int *done) {
         return REDIS_ERR;
 
     if (sdslen(c->obuf) > 0) {
-        nwritten = write(c->fd,c->obuf,sdslen(c->obuf));
+        nwritten = send(c->fd,c->obuf,sdslen(c->obuf), 0);
         if (nwritten == -1) {
             if ((errno == EAGAIN && !(c->flags & REDIS_BLOCK)) || (errno == EINTR)) {
                 /* Try again later */

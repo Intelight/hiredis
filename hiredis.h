@@ -35,7 +35,7 @@
 #define __HIREDIS_H
 #include "read.h"
 #include <stdarg.h> /* for va_list */
-#include <sys/time.h> /* for struct timeval */
+#include <time.h>
 #include <stdint.h> /* uintXX_t, etc */
 #include "sds.h" /* for sds */
 

@@ -2,7 +2,7 @@
 #define _WIN32_HELPER_INCLUDE
 #ifdef _MSC_VER
 
-#ifndef inline
+#if(!defined (__cplusplus) && (!defined (inline)))
 #define inline __inline
 #endif
 
@@ -13,7 +13,7 @@
 #ifndef snprintf
 #define snprintf c99_snprintf
 
-__inline int c99_vsnprintf(char* str, size_t size, const char* format, va_list ap)
+inline int c99_vsnprintf(char* str, size_t size, const char* format, va_list ap)
 {
     int count = -1;
 
@@ -25,7 +25,7 @@ __inline int c99_vsnprintf(char* str, size_t size, const char* format, va_list a
     return count;
 }
 
-__inline int c99_snprintf(char* str, size_t size, const char* format, ...)
+inline int c99_snprintf(char* str, size_t size, const char* format, ...)
 {
     int count;
     va_list ap;
