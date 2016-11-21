@@ -3,7 +3,6 @@ cmake_minimum_required(VERSION 2.8)
 project (hiredis)
 
 set(CMAKE_DEBUG_POSTFIX "d")
-include(ForceMsvcStaticRuntime)
 
 file(GLOB_RECURSE SOURCE_FILES *.h)
 
