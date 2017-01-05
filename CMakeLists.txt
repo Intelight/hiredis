@@ -24,7 +24,7 @@ install(TARGETS hiredis
 	ARCHIVE DESTINATION lib
 	INCLUDES DESTINATION include/hiredis)
 install(EXPORT hiredis-config
-	DESTINATION cmake)
+	DESTINATION lib/cmake/hiredis)
 	
 install(DIRECTORY .
 	DESTINATION include/hiredis
