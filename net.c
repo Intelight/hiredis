@@ -66,7 +66,11 @@ void __redisSetError(redisContext *c, int type, const char *str);
 
 static void redisContextCloseFd(redisContext *c) {
     if (c && c->fd >= 0) {
+#ifndef WIN32
         close(c->fd);
+#else
+        closesocket(c->fd);
+#endif
         c->fd = -1;
     }
 }
